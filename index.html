@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Registration Form</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <style>
+    body {
+      background-image: url(''); /* Initially empty */
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container mt-5">
+    <h2>User Registration Form</h2>
+    <form id="registrationForm">
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label for="firstName">First Name:</label>
+          <input type="text" class="form-control" id="firstName" required>
+        </div>
+        <div class="form-group col-md-6">
+          <label for="lastName">Last Name:</label>
+          <input type="text" class="form-control" id="lastName" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" class="form-control" id="email" required>
+      </div>
+      <div class="form-group">
+        <label for="contactNumber">Contact Number:</label>
+        <input type="tel" class="form-control" id="contactNumber" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    <h2>Registered Users</h2>
+    <ul id="userList"></ul>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+
+  <script>
+    function displayUsers(users) {
+      var userListElement = document.getElementById('userList');
+      userListElement.innerHTML = '';
+
+      // Display each user in the list
+      users.forEach(function(user, index) {
+        var listItem = document.createElement('li');
+        listItem.textContent = user.firstName + ' ' + user.lastName + ' - ' + user.email + ' - ' + user.contactNumber;
+
+        // Create edit button for each user
+        var editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.className = 'btn btn-primary btn-sm ml-2';
+        editButton.addEventListener('click', function() {
+          editUser(index);
+        });
+
+        // Create delete button for each user
+        var deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.className = 'btn btn-danger btn-sm ml-2';
+        deleteButton.addEventListener('click', function() {
+          deleteUser(user._id);
+        });
+
+        // Append edit and delete buttons to list item
+        listItem.appendChild(editButton);
+        listItem.appendChild(deleteButton);
+
+        // Append list item to user list
+        userListElement.appendChild(listItem);
+      });
+    }
+
+    function editUser(index) {
+      // Get the user at the specified index
+      var user = users[index];
+
+      // Update the email field with the current user's email
+      var newEmail = prompt('Enter new email:', user.email);
+      if (newEmail !== null) {
+        user.email = newEmail;
+
+        // Update user data on the server
+        updateUser(user._id, user);
+
+        // Refresh the displayed users
+        getUsersAndDisplay();
+      }
+    }
+
+    function deleteUser(userId) {
+      // Delete the user from the server
+      axios.delete('https://crudcrud.com/api/7829521f0e8e44e288069cc3377c574a/users/' + userId)
+        .then(function() {
+          // Refresh the displayed users
+          getUsersAndDisplay();
+        })
+        .catch(function(error) {
+          console.error('Error deleting user:', error);
+        });
+    }
+
+    function createUser(user) {
+      // Create a new user on the server
+      axios.post('https://crudcrud.com/api/7829521f0e8e44e288069cc3377c574a/users', user)
+        .then(function() {
+          // Refresh the displayed users
+          getUsersAndDisplay();
+        })
+        .catch(function(error) {
+          console.error('Error creating user:', error);
+        });
+    }
+
+    function getUsersAndDisplay() {
+      // Get all users from the server
+      axios.get('https://crudcrud.com/api/7829521f0e8e44e288069cc3377c574a/users')
+        .then(function(response) {
+          var users = response.data;
+          displayUsers(users);
+        })
+        .catch(function(error) {
+          console.error('Error getting users:', error);
+        });
+    }
+
+    document.getElementById('registrationForm').addEventListener('submit', function(e) {
+      e.preventDefault(); // Prevent form submission
+
+      // Get form values
+      var firstName = document.getElementById('firstName').value;
+      var lastName = document.getElementById('lastName').value;
+      var email = document.getElementById('email').value;
+      var contactNumber = document.getElementById('contactNumber').value;
+
+      // Create user object
+      var user = {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        contactNumber: contactNumber
+      };
+
+      // Save the new user on the server
+      createUser(user);
+
+      // Clear form fields
+      document.getElementById('firstName').value = '';
+      document.getElementById('lastName').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('contactNumber').value = '';
+    });
+
+    // Display initial users on page load
+    getUsersAndDisplay();
+  </script>
+</body>
+</html>
